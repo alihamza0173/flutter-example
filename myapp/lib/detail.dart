@@ -6,12 +6,13 @@ import 'main.dart';
 class AppShell extends StatefulWidget {
   final BooksAppState appState;
 
-  AppShell({
-    @required this.appState,
+  const AppShell({
+    super.key,
+    required this.appState,
   });
 
   @override
-  _AppShellState createState() => _AppShellState();
+  State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
@@ -25,9 +26,14 @@ class _AppShellState extends State<AppShell> {
       body: _buildBody(context),
       bottomNavigationBar: BottomNavigationBar(
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
         currentIndex: appState.selectedIndex,
         onTap: (newIndex) {
@@ -53,25 +59,28 @@ class _AppShellState extends State<AppShell> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(child: BooksListScreen(
+        Expanded(
+            child: BooksListScreen(
           books: widget.appState.books,
           onTapped: _handleBookTapped,
         )),
-        Visibility(visible: widget.appState.selectedBook != null, child: Expanded(child: _buildDetailView(context)))
+        Visibility(
+            visible: widget.appState.selectedBook != null,
+            child: Expanded(child: _buildDetailView(context)))
       ],
     );
   }
 
   Widget _buildMobileView(BuildContext context) {
-    return Stack(
-        children: [
-          BooksListScreen(
-            books: widget.appState.books,
-            onTapped: _handleBookTapped,
-          ),
-          Visibility(visible: widget.appState.selectedBook != null, child: _buildDetailView(context))
-        ]
-    );
+    return Stack(children: [
+      BooksListScreen(
+        books: widget.appState.books,
+        onTapped: _handleBookTapped,
+      ),
+      Visibility(
+          visible: widget.appState.selectedBook != null,
+          child: _buildDetailView(context))
+    ]);
   }
 
   Widget _buildBody(BuildContext context) {
@@ -91,12 +100,13 @@ class _AppShellState extends State<AppShell> {
 
 // Screens
 class BooksListScreen extends StatelessWidget {
-  final List<Book> books;
+  final List<Book?> books;
   final ValueChanged<Book> onTapped;
 
-  BooksListScreen({
-    @required this.books,
-    @required this.onTapped,
+  const BooksListScreen({
+    super.key,
+    required this.books,
+    required this.onTapped,
   });
 
   @override
@@ -106,9 +116,9 @@ class BooksListScreen extends StatelessWidget {
         children: [
           for (var book in books)
             ListTile(
-              title: Text(book.title),
-              subtitle: Text(book.author),
-              onTap: () => onTapped(book),
+              title: Text(book?.title ?? 'Title'),
+              subtitle: Text(book?.author ?? 'Author'),
+              onTap: () => onTapped(book!),
             )
         ],
       ),
@@ -117,10 +127,11 @@ class BooksListScreen extends StatelessWidget {
 }
 
 class BookDetailsScreen extends StatelessWidget {
-  final Book book;
+  final Book? book;
 
-  BookDetailsScreen({
-    @required this.book,
+  const BookDetailsScreen({
+    super.key,
+    required this.book,
   });
 
   @override
@@ -131,15 +142,21 @@ class BookDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FlatButton(
+            FilledButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: Text('Back'),
             ),
             if (book != null) ...[
-              Text(book.title, style: Theme.of(context).textTheme.headline6),
-              Text(book.author, style: Theme.of(context).textTheme.subtitle1),
+              Text(
+                book?.title ?? 'Book',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text(
+                book?.author ?? 'Author',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ],
           ],
         ),
@@ -149,6 +166,8 @@ class BookDetailsScreen extends StatelessWidget {
 }
 
 class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

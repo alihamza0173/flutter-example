@@ -7,14 +7,16 @@ void main() {
 }
 
 class NestedRouterDemo extends StatefulWidget {
+  const NestedRouterDemo({super.key});
+
   @override
-  _NestedRouterDemoState createState() => _NestedRouterDemoState();
+  State<NestedRouterDemo> createState() => _NestedRouterDemoState();
 }
 
 class _NestedRouterDemoState extends State<NestedRouterDemo> {
-  BookRouterDelegate _routerDelegate = BookRouterDelegate();
-  BookRouteInformationParser _routeInformationParser =
-  BookRouteInformationParser();
+  final BookRouterDelegate _routerDelegate = BookRouterDelegate();
+  final BookRouteInformationParser _routeInformationParser =
+      BookRouteInformationParser();
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class _NestedRouterDemoState extends State<NestedRouterDemo> {
 class BooksAppState extends ChangeNotifier {
   int _selectedIndex;
 
-  Book _selectedBook;
+  Book? _selectedBook;
 
   final List<Book> books = [
     Book('Stranger in a Strange Land', 'Robert A. Heinlein'),
@@ -47,21 +49,21 @@ class BooksAppState extends ChangeNotifier {
       // Remove this line if you want to keep the selected book when navigating
       // between "settings" and "home" which book was selected when Settings is
       // tapped.
-      selectedBook = null;
+      _selectedBook = null;
     }
     notifyListeners();
   }
 
-  Book get selectedBook => _selectedBook;
+  Book? get selectedBook => _selectedBook;
 
-  set selectedBook(Book book) {
+  set selectedBook(Book? book) {
     _selectedBook = book;
     notifyListeners();
   }
 
   int getSelectedBookById() {
-    if (!books.contains(_selectedBook)) return 0;
-    return books.indexOf(_selectedBook);
+    if (_selectedBook == null || !books.contains(_selectedBook)) return 0;
+    return books.indexOf(_selectedBook!);
   }
 
   void setSelectedBookById(int id) {
@@ -78,14 +80,14 @@ class BookRouteInformationParser extends RouteInformationParser<BookRoutePath> {
   @override
   Future<BookRoutePath> parseRouteInformation(
       RouteInformation routeInformation) async {
-    final uri = Uri.parse(routeInformation.location);
+    final uri = routeInformation.uri;
 
     if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'settings') {
       return BooksSettingsPath();
     } else {
       if (uri.pathSegments.length >= 2) {
         if (uri.pathSegments[0] == 'book') {
-          return BooksDetailsPath(int.tryParse(uri.pathSegments[1]));
+          return BooksDetailsPath(int.tryParse(uri.pathSegments[1]) ?? 0);
         }
       }
       return BooksListPath();
@@ -93,15 +95,15 @@ class BookRouteInformationParser extends RouteInformationParser<BookRoutePath> {
   }
 
   @override
-  RouteInformation restoreRouteInformation(BookRoutePath configuration) {
+  RouteInformation? restoreRouteInformation(BookRoutePath configuration) {
     if (configuration is BooksListPath) {
-      return RouteInformation(location: '/home');
+      return RouteInformation(uri: Uri.parse('/home'));
     }
     if (configuration is BooksSettingsPath) {
-      return RouteInformation(location: '/settings');
+      return RouteInformation(uri: Uri.parse('/settings'));
     }
     if (configuration is BooksDetailsPath) {
-      return RouteInformation(location: '/book/${configuration.id}');
+      return RouteInformation(uri: Uri.parse('/book/${configuration.id}'));
     }
     return null;
   }
@@ -109,6 +111,7 @@ class BookRouteInformationParser extends RouteInformationParser<BookRoutePath> {
 
 class BookRouterDelegate extends RouterDelegate<BookRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<BookRoutePath> {
+  @override
   final GlobalKey<NavigatorState> navigatorKey;
 
   BooksAppState appState = BooksAppState();
@@ -117,6 +120,7 @@ class BookRouterDelegate extends RouterDelegate<BookRoutePath>
     appState.addListener(notifyListeners);
   }
 
+  @override
   BookRoutePath get currentConfiguration {
     if (appState.selectedIndex == 1) {
       return BooksSettingsPath();
@@ -139,17 +143,12 @@ class BookRouterDelegate extends RouterDelegate<BookRoutePath>
           child: AppShell(appState: appState),
         ),
       ],
-      onPopPage: (route, result) {
-        print("onPopPage");
-        if (!route.didPop(result)) {
-          return false;
-        }
-
+      onDidRemovePage: (final page) {
+        print("onDidRemovePage");
         if (appState.selectedBook != null) {
           appState.selectedBook = null;
         }
         notifyListeners();
-        return true;
       },
     );
   }
