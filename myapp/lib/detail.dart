@@ -60,27 +60,34 @@ class _AppShellState extends State<AppShell> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
-            child: BooksListScreen(
-          books: widget.appState.books,
-          onTapped: _handleBookTapped,
-        )),
+          child: BooksListScreen(
+            books: widget.appState.books,
+            onTapped: _handleBookTapped,
+          ),
+        ),
         Visibility(
-            visible: widget.appState.selectedBook != null,
-            child: Expanded(child: _buildDetailView(context)))
+          visible: widget.appState.selectedBook != null,
+          child: Expanded(
+            child: _buildDetailView(context),
+          ),
+        )
       ],
     );
   }
 
   Widget _buildMobileView(BuildContext context) {
-    return Stack(children: [
-      BooksListScreen(
-        books: widget.appState.books,
-        onTapped: _handleBookTapped,
-      ),
-      Visibility(
+    return Stack(
+      children: [
+        BooksListScreen(
+          books: widget.appState.books,
+          onTapped: _handleBookTapped,
+        ),
+        Visibility(
           visible: widget.appState.selectedBook != null,
-          child: _buildDetailView(context))
-    ]);
+          child: _buildDetailView(context),
+        ),
+      ],
+    );
   }
 
   Widget _buildBody(BuildContext context) {
@@ -100,7 +107,7 @@ class _AppShellState extends State<AppShell> {
 
 // Screens
 class BooksListScreen extends StatelessWidget {
-  final List<Book?> books;
+  final List<Book> books;
   final ValueChanged<Book> onTapped;
 
   const BooksListScreen({
@@ -116,9 +123,9 @@ class BooksListScreen extends StatelessWidget {
         children: [
           for (var book in books)
             ListTile(
-              title: Text(book?.title ?? 'Title'),
-              subtitle: Text(book?.author ?? 'Author'),
-              onTap: () => onTapped(book!),
+              title: Text(book.title),
+              subtitle: Text(book.author),
+              onTap: () => onTapped(book),
             )
         ],
       ),
@@ -142,7 +149,7 @@ class BookDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FilledButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -150,11 +157,11 @@ class BookDetailsScreen extends StatelessWidget {
             ),
             if (book != null) ...[
               Text(
-                book?.title ?? 'Book',
+                book!.title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               Text(
-                book?.author ?? 'Author',
+                book!.author,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
